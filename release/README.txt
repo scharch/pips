@@ -18,7 +18,6 @@ LICENSES:
 
 This code is distributed open source under the under the terms of the GNU Free Documention License.
 
-
 INSTALL:
 
 Before the pipeline can be run, the following software are required:
@@ -28,12 +27,11 @@ b) samtools v1.2 http://samtools.sourceforge.net/
 c) Bowtie2 v2.2.3 http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
 d) SPAdes v3.5.0 http://spades.bioinf.spbau.ru/release3.5.0/
 
-Once these have been installed, type
+Once these have been installed, cd into support_files and download bamUtil in the directory which can be found at https://github.com/statgen/bamUtil. Please make sure the installation can be found at support_files/bamUtil.
 
-cd support_files/bamUtil | make
+After obtaining the bamUtil repository (either by download or from github), compile the code using:
 
-in the same directory as run
-
+make all  
 
 USAGE:
 
@@ -93,7 +91,6 @@ Subdirectory /support_files contains additional scripts and databases that are u
 Output files will appear in /output/NAME_OF_PROJECT. Each subdirectory in /output/NAME_OF_PROJECT corresponds to the output from each step in the pipeline, with /output/NAME_OF_PROJECT/igblast_output containing the final output for the dataset.
 
 Users are encouraged to read the ./run file and scripts in the /code directory for more information.
-
 
 OPTIONAL PARAMETERS FOR run:
 
