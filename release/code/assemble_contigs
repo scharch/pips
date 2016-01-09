@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# this script has two parts: first, spades.py is run on the mapped reads, trying
+# several different parameterizations to obtain contigs. then, the contig files 
+# are combined for each individual
+
+NAME_OF_PROJECT=$1    # the name of the dataset, used for naming output directory
+INDIVIDUALS_BASENAME=$2     # the name of the individual that reads came from, used for 
+PAIRED=$3
+
+if [ $PAIRED = 'y' ]; then
+	CLUSTERED_ALLELES_DIR='output/'$NAME_OF_PROJECT'/filtered_clustered_alleles/'$INDIVIDUALS_BASENAME
+else
+	CLUSTERED_ALLELES_DIR='output/'$NAME_OF_PROJECT'/clustered_alleles/'$INDIVIDUALS_BASENAME
+fi
+# this directory should already exist from previous step in pipeline
+
+
+# 1: run assembler (here spades.py v3.5.0) on reads clustered by segment
+# and stored in .fastq format
+
+CONTIG_DIR='output/'$NAME_OF_PROJECT'/assembly_files/'$INDIVIDUALS_BASENAME
+mkdir -p $CONTIG_DIR  # make directory that all output will go into
+ASSEM_DIR=$CONTIG_DIR'/spades_files'
+mkdir -p $ASSEM_DIR  # make subdirectory that spades output will go into
+
+# run spades assembly on mapped reads
+for FILE in $CLUSTERED_ALLELES_DIR'/'*.fastq; do
+FNAME="${FILE##*/}" # get segment filename, without path
+# use FNAME for output directory in ASSEM_DIR to store spades output
+spades.py -k 21 -s $FILE -o $ASSEM_DIR/${FNAME%.*}
+done
+
+# for those segments that failed to produce contigs, try with assembler only
+for SUBDIR in $ASSEM_DIR/*; do
+if ! [ -e $SUBDIR'/contigs.fasta' ]; then
+SUBDIR_NAME="${SUBDIR##*/}" 
+spades.py --only-assembler -k 21 -s $CLUSTERED_ALLELES_DIR/$SUBDIR_NAME.fastq \
+-o $SUBDIR;
+fi;
+done
+
+# for those segments that still failed to produce contigs, try with k=17
+for SUBDIR in $ASSEM_DIR/*; do
+if ! [ -e "$SUBDIR/contigs.fasta" ]; then 
+SUBDIR_NAME="${SUBDIR##*/}" 
+spades.py -k 17 -s "$CLUSTERED_ALLELES_DIR/$SUBDIR_NAME.fastq" \
+-o $SUBDIR;
+fi;
+done
+
+# for those segments that failed to produce contigs, try with k=13
+for SUBDIR in $ASSEM_DIR/*; do
+if ! [ -e "$SUBDIR/contigs.fasta" ]; then 
+SUBDIR_NAME="${SUBDIR##*/}" 
+spades.py -k 13 -s "$CLUSTERED_ALLELES_DIR/$SUBDIR_NAME.fastq" \
+-o $SUBDIR;
+fi;
+done
+
+# for those segments that failed to produce contigs, next try with k=9
+for SUBDIR in $ASSEM_DIR/*; do
+if ! [ -e "$SUBDIR/contigs.fasta" ]; then 
+SUBDIR_NAME="${SUBDIR##*/}" 
+spades.py -k 9 -s "$CLUSTERED_ALLELES_DIR/$SUBDIR_NAME.fastq" \
+-o $SUBDIR;
+fi;
+done
+
+# for those segments that failed to produce contigs, finally try with k=7
+for SUBDIR in $ASSEM_DIR/*; do
+if ! [ -e "$SUBDIR/contigs.fasta" ]; then 
+SUBDIR_NAME="${SUBDIR##*/}" 
+spades.py -k 7 -s "$CLUSTERED_ALLELES_DIR/$SUBDIR_NAME.fastq" \
+-o $SUBDIR;
+fi;
+done
+
+
+# 2: combine all contigs into a single file for each sample
+
+# first, collect all the contigs (.fasta files) into a single directory for
+# each sample, labelled by the segment, and print to stdout any segments on 
+# which assembly failed
+
+echo 'Assembly failed on the following segments:'
+for SUBDIR in $ASSEM_DIR/*; do
+if [ -e "$SUBDIR/contigs.fasta" ]; then
+	cp "$SUBDIR/contigs.fasta" "$CONTIG_DIR/${SUBDIR##*/}.fasta";
+else
+	echo ${SUBDIR##*/}
+fi;
+done
+echo 'end of list'
+
+# second, rename the contig files and consolidate into a single .fasta file
+python 'code/'contigs_rename.py $CONTIG_DIR'/'
+# delete the separate contig files
+find $CONTIG_DIR'/' -name '[1-7]*.fasta' -delete

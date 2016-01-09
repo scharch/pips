@@ -1,0 +1,27 @@
+#!/bin/bash
+
+
+NAME_OF_PROJECT=$1 	#name of folder for the project 
+INDIVIDUALS_NAME=$2
+PATH_TO_INDIVIDUAL_BAM=$3
+PAIRED=$4
+
+#remove the fq_files directory if it already exists
+if [ -d "output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_NAME" ]; then
+	    rm -r "output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_NAME"
+fi
+
+mkdir -p output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_NAME
+
+#run bam2fastq to convert the bam file to fastq files
+#will produce 3 fastq files, one for unpaired reads, and 2 for paired reads, one for each mate
+./support_files/bamUtil/bin/bam bam2fastq --in $PATH_TO_INDIVIDUAL_BAM --unpairedOut "output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_NAME/$INDIVIDUALS_NAME.fq" --firstOut output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_NAME/$INDIVIDUALS_NAME"_1.fq" --secondOut output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_NAME/$INDIVIDUALS_NAME"_2.fq"
+
+
+if [ $PAIRED = 'y' ] ; then 		#delete the unpaired read fastq if the user specified that it's paired reads
+	rm "output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_NAME/$INDIVIDUALS_NAME.fq"
+else		#delete the paired read fastq if the user specified that it's unpaired reads
+	rm output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_NAME/$INDIVIDUALS_NAME"_1.fq"
+	rm output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_NAME/$INDIVIDUALS_NAME"_2.fq"
+fi
+

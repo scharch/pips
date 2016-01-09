@@ -1,0 +1,27 @@
+igblast (v1.3.0)
+installation:
+- can download stand-alone igblast from
+ftp://ftp.ncbi.nih.gov/blast/executables/igblast/release/1.3.0/
+- follow installation instructions
+
+support databases for igblast:
+- the IMGT database does not come installed with igblast. Excerpt from igblast readme:
+
+"To search IMGT germline sequences, you need to download them from IMGT web site 
+(http://www.imgt.org/IMGT_vquest/share/textes/ ).   After you have downloaded the sequences, 
+invoke our utility tool edit_imgt_file.pl (download from ftp://ftp.ncbi.nih.gov/blast/executables/igblast/release/ directory) to process the sequences (to change the long IMGT definition lines to germline gene names only).  For example:
+
+./edit_imgt_file.pl imgt_file > my_seq_file
+
+Then you can use NCBI's makeblastdb tool to make the blast database from the output file.  For example:
+
+makeblastdb -parse_seqids -dbtype nucl -in my_seq_file
+
+Now you can use my_seq_file as blast database file for igblast."
+
+- we can distribute pre-processed imgt database (and UNSWIg) files with package (current as of June 2014)
+- some strange bug regarding auxiliary data, which doesn't seem to be used, 
+	but script won't run without the option
+
+assemble_contigs
+- version of spades.py is 3.5.0 downloaded from http://spades.bioinf.spbau.ru/release3.5.0/

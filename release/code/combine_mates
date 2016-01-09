@@ -1,0 +1,26 @@
+#!/bin/bash  
+#merges files and folders correspoding to two mates
+
+INDIVIDUALS_NAME=${1##*/}   #name of the individual 
+INDIVIDUALS_NAME=${INDIVIDUALS_NAME%%.*}
+
+NAME_OF_PROJECT=$2
+INDIVIDUALS_BASE_NAME=$(echo $INDIVIDUALS_NAME |sed 's/.\{2\}$//')		#get the base name, originally there should be folders $INDIVIDUALS_NAME'_1' and $INDIVIDUALS_NAME'_2'
+
+mkdir -p output/$NAME_OF_PROJECT/alleles/$INDIVIDUALS_BASE_NAME
+
+#copies contents of the two folders $INDIVIDUALS_NAME'_1' and $INDIVIDUALS_NAME'_2' to the same new folder $INDIVIDUALS_NAME and merges files with the same name (like '1-2*01.fastq')
+#for loop only runs twice 
+for PATH_TO_FILE_IN_END_PAIR in "output/$NAME_OF_PROJECT/alleles/$INDIVIDUALS_NAME/"*;
+do
+	ALLELE_NAME="${PATH_TO_FILE_IN_END_PAIR##*/}"
+	ALLELE_NAME="${ALLELE_NAME%%.*}"
+	cat "$PATH_TO_FILE_IN_END_PAIR" >> "output/$NAME_OF_PROJECT/alleles/$INDIVIDUALS_BASE_NAME/$ALLELE_NAME.fastq";
+done
+
+rm -r "output/$NAME_OF_PROJECT/alleles/$INDIVIDUALS_NAME"	
+
+
+
+
+

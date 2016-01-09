@@ -1,0 +1,42 @@
+#!/bin/bash  
+#This script maps reads to the database. Also, reverses and complements reads that are reverse complements and saves in a temp file.
+
+#reads bam files and ouputs the first three columns
+function do_segment () {
+	samtools view -F 4 $1 | sort -k 3,3 -k4,4n | awk '{ print $3 " " $2 " " $1}' | grep $2 | awk '{ print $3 " " $2 " " $1}'
+}
+
+NAME_OF_PROJECT=$1 		#name of folder for the project 
+PATH_TO_GENOME_FILE=$2 			#path to the original fastq
+INDIVIDUALS_NAME=${PATH_TO_GENOME_FILE##*/} 	
+INDIVIDUALS_NAME=${INDIVIDUALS_NAME%%.*}		#individual name will be differentiate mate pairs
+INDIVIDUALS_BASE_NAME=$5		#base name means it doesn't differentiate between mate pairs 
+PATH_TO_BAM_FILE="output/"$NAME_OF_PROJECT"/bam_files/"$INDIVIDUALS_NAME".bam"		#bam file produced from bowtie2
+PATH_TO_DATABASE=$3
+COV="$6cov"
+BOWTIE_PARAM=$7
+
+#if an output file already exists with the same name, it will be deleted
+if [ -d "output/$NAME_OF_PROJECT/alleles/$INDIVIDUALS_NAME" ]; then
+    rm -r "output/$NAME_OF_PROJECT/alleles/$INDIVIDUALS_NAME"
+fi
+
+mkdir -p "output/$NAME_OF_PROJECT/bam_files"
+mkdir -p output/$NAME_OF_PROJECT/alleles/$INDIVIDUALS_NAME
+
+#uses bowtie2 to map the reads to the database
+bowtie2 -x $3 ${PATH_TO_GENOME_FILE} -S $PATH_TO_BAM_FILE --local --score-min G,20,$7
+
+#creates a temporary file to identify reads that are reverse complements
+awk -F'[>*]' 'NF == 3{print $2}' $4 | 
+while read num
+do
+	temp="^$num\*"
+ 	do_segment ${PATH_TO_BAM_FILE} $temp >> "output/$NAME_OF_PROJECT/temp_$INDIVIDUALS_NAME.txt"		
+done
+
+#Reverses and complements sequences 
+python code/unreverse.py $PATH_TO_GENOME_FILE $INDIVIDUALS_NAME $NAME_OF_PROJECT
+
+#remove the old temporary file
+rm "output/$NAME_OF_PROJECT/temp_$INDIVIDUALS_NAME.txt"

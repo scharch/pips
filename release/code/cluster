@@ -1,0 +1,34 @@
+#!/bin/bash  
+#
+
+CURRENT_SEGMENT_CLUSTER=""	#name of the last line with a ">" in front of it, the title name for all following alleles after the ">" line
+
+INDIVIDUALS_NAME=$3
+NAME_OF_PROJECT=$2
+PATH_TO_CLUSTER_LIST=$1
+
+PREFIX_IN="output/$2/alleles/$INDIVIDUALS_NAME/"		#prefix of the path to the input file
+PREFIX_OUT="output/$2/clustered_alleles/$INDIVIDUALS_NAME/"		#prefix of the path to the output file
+
+#remove the directory clustered_alleles if it already exists
+if [ -d "output/$NAME_OF_PROJECT/clustered_alleles/$INDIVIDUALS_NAME" ]; then
+    rm -r "output/$NAME_OF_PROJECT/clustered_alleles/$INDIVIDUALS_NAME"
+fi
+
+mkdir -p output/$NAME_OF_PROJECT/clustered_alleles/$INDIVIDUALS_NAME
+
+#Iterates over every cluster. If the the line starts with '>' then this is the title name of the cluster, otherwise it's a name of an allele that's in the cluster. 
+while read line
+do
+    if [[ ${line:0:1} == ">" ]]; then 
+    	CURRENT_SEGMENT_CLUSTER=$(cut -d ">" -f 2 <<< $line); 		#title name of the cluster
+    else 
+    	#check that it's a fastq file
+    	if [ -f "$PREFIX_IN$line.fastq" ]; then 
+			cat "$PREFIX_IN$line.fastq" >> "$PREFIX_OUT$CURRENT_SEGMENT_CLUSTER.fastq";
+		fi
+    fi
+done < "$PATH_TO_CLUSTER_LIST"
+
+#deletes files of empty file size in the clustered_alleles directory
+find $PREFIX_OUT"." -type f -size 0 | xargs rm

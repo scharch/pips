@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# take the assembled contigs, run igblast to identify nearest germline allele,
+# then summarize the igblast output into a .txt file
+
+NAME_OF_PROJECT=$1  # name of dataset
+INDIVIDUALS_BASENAME=$2  # name of individual
+
+CONTIGS='output/'$NAME_OF_PROJECT'/assembly_files/'$INDIVIDUALS_BASENAME'/all_contigs.fasta'
+# this file should already exist from previous step of pipeline
+
+OUTPUT_DIR='output/'$NAME_OF_PROJECT'/igblast_output/'$INDIVIDUALS_BASENAME
+mkdir -p $OUTPUT_DIR # create directory to store the igblast output and summary
+
+# run igblast against full imgt database (functional, open-reading frame,
+# and pseudogenes) and output to file named BLAST
+
+# to use different database, change the V_DB, J_DB, and D_DB paths accordingly
+V_DB="support_files/igblast_db/imgt_Vgerm"
+J_DB="support_files/igblast_db/imgt_Jgerm"
+D_DB="support_files/igblast_db/imgt_Dgerm"
+
+BLAST=$OUTPUT_DIR'/all_contigs_igblast.txt'
+
+igblastn -germline_db_V $V_DB -germline_db_J $J_DB -germline_db_D $D_DB -organism human \
+-domain_system imgt -query $CONTIGS -auxiliary_data optional_file/human_gl.aux -show_translation -outfmt 3 > $BLAST
+
+
+# parse the igblast file to give summary information about the contigs
+PARSED_FILE=$OUTPUT_DIR'/igblast_summary.txt'
+# igblast_summary.py usage:
+# python igblast_summary.py <path_to_igblast_output> <path_to_contigs_fasta_file> <path_to_output_file>
+python 'code/'igblast_summary.py $BLAST $CONTIGS $PARSED_FILE
