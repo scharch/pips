@@ -57,7 +57,7 @@ Example of execution of program with unpaired reads:
 
 Example of execution of program with paired reads:
 
-./run examples/hg19_100bp_30cov_pair.bam hg19_paired y 30 20
+./run examples/NA12877.bam NA12877 y 30 30 
 
 Example of execution of program on 'Project' containing reads from individuals IND1, IND2, IND3 with bam files IND1.bam, IND2.bam, IND3.bam:
 
