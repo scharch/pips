@@ -4,18 +4,18 @@
 CURRENT_SEGMENT_CLUSTER=""	#name of the last line with a ">" in front of it, the title name for all following alleles after the ">" line
 
 INDIVIDUALS_NAME=$3
-NAME_OF_PROJECT=$2
-PATH_TO_CLUSTER_LIST=$1
+PATH_TO_OUTPUT=$1
+PATH_TO_CLUSTER_LIST=$2
 
-PREFIX_IN="output/$2/alleles/$INDIVIDUALS_NAME/"		#prefix of the path to the input file
-PREFIX_OUT="output/$2/clustered_alleles/$INDIVIDUALS_NAME/"		#prefix of the path to the output file
+PREFIX_IN="$PATH_TO_OUTPUT/alleles/$INDIVIDUALS_NAME/"		#prefix of the path to the input file
+PREFIX_OUT="$PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_NAME/"		#prefix of the path to the output file
 
 #remove the directory clustered_alleles if it already exists
-if [ -d "output/$NAME_OF_PROJECT/clustered_alleles/$INDIVIDUALS_NAME" ]; then
-    rm -r "output/$NAME_OF_PROJECT/clustered_alleles/$INDIVIDUALS_NAME"
+if [ -d "$PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_NAME" ]; then
+    rm -r "$PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_NAME"
 fi
 
-mkdir -p output/$NAME_OF_PROJECT/clustered_alleles/$INDIVIDUALS_NAME
+mkdir -p $PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_NAME
 
 #Iterates over every cluster. If the the line starts with '>' then this is the title name of the cluster, otherwise it's a name of an allele that's in the cluster. 
 while read line
