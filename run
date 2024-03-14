@@ -35,7 +35,6 @@ THRESHOLD=1000
 EPSILON=200
 
 PATH_TO_BOWTIE_DATABASE_INDEX="support_files/bowtie_databases/$LOCUS/$LOCUS"		#path to the bowtie indexed database
-PATH_TO_BOWTIE_DATABASE_FILE="support_files/bowtie_databases/$LOCUS/$LOCUS.fa"	#path the the database fasta file
 PATH_TO_CLUSTER_LIST="clusters/$LOCUS.txt"
 
 PATH_TO_OUTPUT="output/$NAME_OF_PROJECT/$LOCUS"
@@ -65,7 +64,7 @@ fi
 for PATH_TO_INDIVIDUAL_FASTQ in $PATH_TO_FASTQS*.fq; 
 do	
 	echo "generating segment files"
-	./code/generate_segment_files $PATH_TO_OUTPUT $PATH_TO_INDIVIDUAL_FASTQ $PATH_TO_BOWTIE_DATABASE_INDEX $PATH_TO_BOWTIE_DATABASE_FILE $INDIVIDUALS_BASE_NAME $BOWTIE_PARAM		#generates read mapping data and organizes it by fasta files for each allele
+	./code/generate_segment_files $PATH_TO_OUTPUT $PATH_TO_INDIVIDUAL_FASTQ $PATH_TO_BOWTIE_DATABASE_INDEX $BOWTIE_PARAM		#generates read mapping data and organizes it by fasta files for each allele
 	echo "clustering"
 	./code/cluster $PATH_TO_OUTPUT $PATH_TO_CLUSTER_LIST $INDIVIDUALS_BASE_NAME
 done
