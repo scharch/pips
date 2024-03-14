@@ -1,77 +1,84 @@
 #!/bin/bash  
 #This is the main file that runs the genotyping pipeline.
+#It's all red ink in the github diff, but many/most changes are small things like
+#	indentation, moving bits up/down, and simplifiying a couple of reused variables.
+#Main substantive changes are allowing fastq input (for targeted sequencing instead of
+#	WGS) and switching from SPADES to Abyss as the assembler.
 
-chmod +x code/assemble_contigs
-chmod +x code/igblast_contigs_summarize
-chmod +x code/generate_segment_files
-chmod +x code/generate_mate_bam_info
-chmod +x code/combine_mates
-chmod +x code/cluster
-chmod +x code/generate_fq
-chmod +x code/filter_using_mates
-chmod +x code/generate_fq
+#HPC-specific: Unimport all modules to avoid conflicts, then import relevant ones only
+module purge; module load uge
+
+#VERY specific: unset personal environmental variables so Abyss doesn't get confused
+unset B G H S
+
+#disallow the creation of core dumps - otherwise spades will dump a ton of data
+ulimit -c 0
+
+#disallow referencing of undefined variables - here to ease debugging
+set -u
+
+chmod +x code/*
 chmod +x support_files/bamUtil/bin/bam
 
-PATH_TO_BAM_FILE=$1 		#relative path to the bam file of interest
-NAME_OF_PROJECT=$2 			#label for the output folder
-PAIRED=$3 		#specify
-COV=$4		#coverage of the input data
-BOWTIE_PARAM=$5		#bowtie2 parameter
+#input variables are NOT the same as Luo et al
+NAME_OF_PROJECT=$1 			#label for the output folder
+LOCUS=$2 					#IGHV, IGKV, or IGLV
+FILE_TYPE=$3 				# fq or bam
+PATH_TO_DATA=$4 			#relative path to the bam file or (read1) fastq file of interest
+BOWTIE_PARAM=${5:-20} 		#bowtie2 parameter, default=20
+PAIRED=${6:-y} 				#assumes paired-end by default
+#COV						#param not used in original code
+#DIPLOID 					#not implemented here
 
-# OFFSET=106300000	#hg19 offset
-# OFFSET=105786368	#hg38 offset
 OFFSET=0
 THRESHOLD=1000
-# EPSILON=311 #epsilon used for platinum genomes dataset
 EPSILON=200
 
-PATH_TO_BOWTIE_DATABASE_INDEX="support_files/bowtie_databases/imgtfil/imgtfil"		#path to the bowtie indexed database
-PATH_TO_BOWTIE_DATABASE_FILE="support_files/bowtie_databases/imgtfil/imgt_VH_filtered.fasta"	#path the the database fasta file
-PATH_TO_CLUSTER_LIST="support_files/clusters/imgtfil_cluster.txt"		#path to the list of clustered segments
+PATH_TO_BOWTIE_DATABASE_INDEX="support_files/bowtie_databases/$LOCUS/$LOCUS"		#path to the bowtie indexed database
+PATH_TO_BOWTIE_DATABASE_FILE="support_files/bowtie_databases/$LOCUS/$LOCUS.fa"	#path the the database fasta file
+PATH_TO_CLUSTER_LIST="clusters/$LOCUS.txt"
 
-if [[ -f $PATH_TO_BAM_FILE ]]; then
+PATH_TO_OUTPUT="output/$NAME_OF_PROJECT/$LOCUS"
 
-	INDIVIDUALS_BASE_NAME=${PATH_TO_BAM_FILE##*/} 	  #name of the individual 
-	INDIVIDUALS_BASE_NAME=${INDIVIDUALS_BASE_NAME%%.*}
+INDIVIDUALS_BASE_NAME=${PATH_TO_DATA##*/} 	  #name of the individual 
+INDIVIDUALS_BASE_NAME=${INDIVIDUALS_BASE_NAME%%.*}
 
-	./code/generate_fq $NAME_OF_PROJECT $INDIVIDUALS_BASE_NAME $PATH_TO_BAM_FILE $PAIRED 		#generates fasta files from the bam file.
-
-	#if an output directory already exists with the same name, it will be deleted
-	if [ -d "output/$NAME_OF_PROJECT/alleles/$INDIVIDUALS_BASE_NAME" ]; then 		
-	    rm -r "output/$NAME_OF_PROJECT/alleles/$INDIVIDUALS_BASE_NAME"
-	fi
-
-	#paired case
-	if [ $PAIRED = 'y' ]; then 
-
-		#This for loop runs twice. Once for $INDIVIDUALS_BASE_NAME'_1.fq' and $INDIVIDUALS_BASE_NAME'_2.fq'
-		for PATH_TO_INDIVIDUAL_FASTQ in "output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_BASE_NAME/"*.fq; 
-		do	
-			INDIVIDUALS_NAME=${PATH_TO_INDIVIDUAL_FASTQ##*/}  
-			INDIVIDUALS_NAME=${INDIVIDUALS_NAME%%.*}
-
-			./code/generate_segment_files $NAME_OF_PROJECT $PATH_TO_INDIVIDUAL_FASTQ $PATH_TO_BOWTIE_DATABASE_INDEX $PATH_TO_BOWTIE_DATABASE_FILE $INDIVIDUALS_BASE_NAME $COV $BOWTIE_PARAM		#generates read mapping data and organizes it by fasta files for each allele
-			./code/combine_mates "output/$NAME_OF_PROJECT/bam_files/"$INDIVIDUALS_NAME".bam" $NAME_OF_PROJECT $INDIVIDUALS_BASE_NAME		#combine allele files for mate pairs
-			./code/generate_mate_bam_info $PATH_TO_BAM_FILE $NAME_OF_PROJECT		#filter data out from the bam file respectively for first-in-pair and second-in-pair
-		done
-
-		./code/cluster $PATH_TO_CLUSTER_LIST $NAME_OF_PROJECT $INDIVIDUALS_BASE_NAME
-		./code/filter_using_mates $NAME_OF_PROJECT $INDIVIDUALS_BASE_NAME $OFFSET $THRESHOLD $EPSILON
-	#unpaired case	
-	else 
-		PATH_TO_INDIVIDUAL_FASTQ="output/$NAME_OF_PROJECT/fq_files/$INDIVIDUALS_BASE_NAME/"$INDIVIDUALS_BASE_NAME".fq" 		
-		./code/generate_segment_files $NAME_OF_PROJECT $PATH_TO_INDIVIDUAL_FASTQ $PATH_TO_BOWTIE_DATABASE_INDEX $PATH_TO_BOWTIE_DATABASE_FILE $INDIVIDUALS_BASE_NAME $COV $BOWTIE_PARAM		#generates read mapping data and organizes it by fasta files for each allele
-		./code/cluster $PATH_TO_CLUSTER_LIST $NAME_OF_PROJECT $INDIVIDUALS_BASE_NAME	#cluster alleles based on hierarchical clustering results
-	fi
-	
-	./code/assemble_contigs $NAME_OF_PROJECT $INDIVIDUALS_BASE_NAME	$PAIRED # do assembly on the reads clustered by allele
-	./code/igblast_contigs_summarize $NAME_OF_PROJECT $INDIVIDUALS_BASE_NAME  # run igblast on assembled contigs and create summary file
-
-elif [[ -d $PATH_TO_BAM_FILE ]]; then
-    echo "$PATH_TO_BAM_FILE is a directory. Please pass in a path to a file."
-
-else
-    echo "$PATH_TO_BAM_FILE is not valid"
-    exit 1
-
+if [[ ! -f $PATH_TO_DATA ]]; then
+	echo "$PATH_TO_DATA is not valid"
+	exit 1
 fi
+
+#if an output directory already exists with the same name, it will be deleted
+if [ -d "$PATH_TO_OUTPUT/alleles/$INDIVIDUALS_BASE_NAME" ]; then 		
+    rm -r "$PATH_TO_OUTPUT/alleles/$INDIVIDUALS_BASE_NAME"
+fi
+
+if [[ $FILE_TYPE == "bam" ]]; then
+	./code/generate_fq $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $PATH_TO_BAM_FILE $PAIRED 		#generates fasta files from the bam file.
+	PATH_TO_FASTQS="$PATH_TO_OUTPUT/fq_files/$INDIVIDUALS_BASE_NAME/"
+else
+	#remove extension and possible read indicator
+	PATH_TO_FASTQS=$(echo $PATH_TO_DATA | sed 's/[12]\?\.\(fastq\|fq\)$//')
+fi
+
+#This for loop runs twice for paired or once for unpaired
+for PATH_TO_INDIVIDUAL_FASTQ in $PATH_TO_FASTQS*.fq; 
+do	
+	echo "generating segment files"
+	./code/generate_segment_files $PATH_TO_OUTPUT $PATH_TO_INDIVIDUAL_FASTQ $PATH_TO_BOWTIE_DATABASE_INDEX $PATH_TO_BOWTIE_DATABASE_FILE $INDIVIDUALS_BASE_NAME $BOWTIE_PARAM		#generates read mapping data and organizes it by fasta files for each allele
+	echo "clustering"
+	./code/cluster $PATH_TO_OUTPUT $PATH_TO_CLUSTER_LIST $INDIVIDUALS_BASE_NAME
+done
+
+if [[ $PAIRED == 'y' && $FILE_TYPE == "bam" ]]; then #do some extra filtering
+	echo "filtering by paired reads"
+	./code/combine_mates $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME		#combine allele files for mate pairs
+	./code/generate_mate_bam_info $PATH_TO_BAM_FILE $NAME_OF_PROJECT		#filter data out from the bam file respectively for first-in-pair and second-in-pair
+	./code/filter_using_mates $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $OFFSET $THRESHOLD $EPSILON
+done
+
+echo "Error correcting reads"
+./code/correct_reads $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $LOCUS
+echo "Assembling Contigs"
+./code/assemble_contigs_abyss $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $COV_MINIMUM
+
