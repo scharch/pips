@@ -12,10 +12,10 @@ def unreverse(query_name, flag):
     else:
         return query_name + fq_dict[query_name][0]
 
-NAME_OF_PROJECT = sys.argv[3]
+PATH_TO_OUTPUT = sys.argv[3]
 PATH_TO_GENOME_FILE = sys.argv[1]
 INDIVIDUALS_NAME = sys.argv[2]
-temp_file = "output/"+NAME_OF_PROJECT+"/temp_"+INDIVIDUALS_NAME+".txt"      #output file
+temp_file = PATH_TO_OUTPUT+"/temp_"+INDIVIDUALS_NAME+".txt"      #output file
 
 fq_dict = {}        #dictionary of contents in the individual's fasta file. Key is id of the read, value is the sequence and quality score concatenated together and separated by a '+'
 line_list = []      #list of each line in the temp file
@@ -39,6 +39,6 @@ with open(temp_file) as bash_list:
             #curr_segment[0] is the query name
             #curr_segment[1] is the flag value
             #curr_segment[2] is the segment the query mapped to
-            with open("output/"+NAME_OF_PROJECT+"/alleles/"+INDIVIDUALS_NAME+"/"+curr_segment[2]+".fastq","a+") as f:
+            with open(PATH_TO_OUTPUT+"/alleles/"+INDIVIDUALS_NAME+"/"+curr_segment[2]+".fastq","a+") as f:
                 f.write(unreverse("@" + curr_segment[0] + '\n',curr_segment[1]))
 
