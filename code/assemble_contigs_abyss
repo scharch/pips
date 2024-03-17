@@ -1,0 +1,40 @@
+#!/bin/bash
+
+PATH_TO_OUTPUT=$1
+INDIVIDUALS_BASE_NAME=$2
+
+
+#IF YOU'RE READING THIS, DOUBLE CHECK THE -k VALUE OF abyss-pe!!!!!
+#IT NEEDS TO BE EVALUATED WHENEVER READ LENGTH CHANGES
+
+#HPC-specific
+module load abyss
+module load anaconda3 python/3.6.7-foss-2016b
+
+if [ -d "$PATH_TO_OUTPUT/abyss/$INDIVIDUALS_BASE_NAME" ]; then
+    rm -r "$PATH_TO_OUTPUT/abyss/$INDIVIDUALS_BASE_NAME"
+fi
+
+mkdir -p $PATH_TO_OUTPUT/abyss/$INDIVIDUALS_BASE_NAME
+mkdir -p $PATH_TO_OUTPUT/seq_calls_abyss/$INDIVIDUALS_BASE_NAME
+#rm -r $PATH_TO_OUTPUT/error_corrected/$INDIVIDUALS_BASE_NAME/tmp
+
+#for PATH_TO_SEGMENT_FILE in `ls "$PATH_TO_OUTPUT/error_corrected/$INDIVIDUALS_BASE_NAME"`;
+for PATH_TO_SEGMENT_FILE in `ls "$PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_BASE_NAME"`;
+do
+  CWD=`pwd`
+  #SEGMENT=`python -c "import sys; print('$PATH_TO_SEGMENT_FILE'.split('_')[1].split('.')[0])"` #if using error correction
+  SEGMENT=`python -c "import sys; print('$PATH_TO_SEGMENT_FILE'.split('.')[0])"` #otherwise
+  echo "ABYSS outputting to: $PATH_TO_OUTPUT/abyss/$INDIVIDUALS_BASE_NAME/$SEGMENT"
+  mkdir -p "$PATH_TO_OUTPUT/abyss/$INDIVIDUALS_BASE_NAME/$SEGMENT"
+  abyss-pe name=$SEGMENT in="$CWD/$PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_BASE_NAME/$PATH_TO_SEGMENT_FILE" k=21 a=10 j=1 b=22 -C "$PATH_TO_OUTPUT/abyss/$INDIVIDUALS_BASE_NAME/$SEGMENT"
+done
+
+#for PATH_TO_SEGMENT_FILE in `ls "output/$PATH_TO_OUTPUT/error_corrected/$INDIVIDUALS_BASE_NAME"`; #if using error correction
+for PATH_TO_SEGMENT_FILE in `ls "output/$PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_BASE_NAME"`; #otherwise
+do
+  CWD=`pwd`
+  #SEGMENT=`python -c "import sys; print('$PATH_TO_SEGMENT_FILE'.split('_')[1].split('.')[0])"`
+  SEGMENT=`python -c "import sys; print('$PATH_TO_SEGMENT_FILE'.split('.')[0])"` #otherwise
+  code/assemble_contigs_from_graph.py $SEGMENT "$PATH_TO_OUTPUT/abyss/$INDIVIDUALS_BASE_NAME/$SEGMENT/$SEGMENT-contigs.fa" "$PATH_TO_OUTPUT/abyss/$INDIVIDUALS_BASE_NAME/$SEGMENT/$SEGMENT-contigs.dot" > "$PATH_TO_OUTPUT/seq_calls_abyss/$INDIVIDUALS_BASE_NAME/$SEGMENT.fa"
+done
