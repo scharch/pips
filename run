@@ -53,7 +53,7 @@ if [ -d "$PATH_TO_OUTPUT/alleles/$INDIVIDUALS_BASE_NAME" ]; then
 fi
 
 if [[ $FILE_TYPE == "bam" ]]; then
-	./code/generate_fq $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $PATH_TO_BAM_FILE $PAIRED 		#generates fasta files from the bam file.
+	./code/generate_fq $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $PATH_TO_DATA $PAIRED 		#generates fasta files from the bam file.
 	PATH_TO_FASTQS="$PATH_TO_OUTPUT/fq_files/$INDIVIDUALS_BASE_NAME/"
 else
 	#remove extension and possible read indicator
@@ -65,17 +65,21 @@ for PATH_TO_INDIVIDUAL_FASTQ in $PATH_TO_FASTQS*.fq;
 do	
 	echo "generating segment files"
 	./code/generate_segment_files $PATH_TO_OUTPUT $PATH_TO_INDIVIDUAL_FASTQ $PATH_TO_BOWTIE_DATABASE_INDEX $BOWTIE_PARAM		#generates read mapping data and organizes it by fasta files for each allele
-	echo "clustering"
-	./code/cluster $PATH_TO_OUTPUT $PATH_TO_CLUSTER_LIST $INDIVIDUALS_BASE_NAME
 done
 
 if [[ $PAIRED == 'y' && $FILE_TYPE == "bam" ]]; then #do some extra filtering
-	echo "filtering by paired reads"
 	./code/combine_mates $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME		#combine allele files for mate pairs
-	./code/generate_mate_bam_info $PATH_TO_BAM_FILE $NAME_OF_PROJECT		#filter data out from the bam file respectively for first-in-pair and second-in-pair
-	./code/filter_using_mates $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $OFFSET $THRESHOLD $EPSILON
-done
+	if [[ $FILE_TYPE == "bam" ]]; then
+		# CAS: I am skeptical of this, as it seems to partly undermine the point of the clustering
+		#	but will leave in place for now
+		echo "filtering by paired reads"
+		./code/generate_mate_bam_info $PATH_TO_OUTPUT $PATH_TO_DATA $INDIVIDUALS_BASE_NAME #filter data out from the bam file respectively for first-in-pair and second-in-pair
+		./code/filter_using_mates $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $OFFSET $THRESHOLD $EPSILON
+	fi
+fi
 
+echo "clustering"
+./code/cluster $PATH_TO_OUTPUT $PATH_TO_CLUSTER_LIST $INDIVIDUALS_BASE_NAME
 echo "Error correcting reads"
 ./code/correct_reads $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $LOCUS
 echo "Assembling Contigs"
