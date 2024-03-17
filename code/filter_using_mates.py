@@ -1,31 +1,33 @@
 import sys
 
 #arg 1 = path to the old segment file (the current one)
-#arg 2 = individual's base name
-#arg 3 = path to new segment file
-#arg 4 = offset (e.g. 106300000 for hg19)
-#arg 5 = threshold for acceptance (e.g. 1000)
-#arg 6 = epsilon (e.g. 200)
+#arg 2 = path to new segment file
+#arg 3 = individual's base name
+#arg 4 = general output path
+#arg 5 = name of current allele
+#arg 6 = offset (e.g. 106300000 for hg19)
+#arg 7 = threshold for acceptance (e.g. 1000)
+#arg 8 = epsilon (e.g. 200)
 
 #hg19 one
-chr14_dict = {'IGHV6-1': '106405610', 'IGHV4-4': '106478109', 'IGHV3-15': '106610312', 'IGHV3-16': '106621893', 'IGHV3-11': '106573232', 'IGHV5-51': '107034728', 'IGHV3-13': '106586136', 'IGHV3-35': '106845322', 'IGHV3-33': '106815721', 'IGHV3-30': '106791004', 'IGHV3-73': '107210931', 'IGHV3-72': '107198931', 'IGHV2-26': '106757649', 'IGHV3-38': '106866405', 'IGHV2-5': '106494134', 'IGHV3-7': '106518399', 'IGHV1-8': '106539078', 'IGHV3-9': '106552284', 'IGHV1-3': '106471245', 'IGHV1-2': '106452670', 'IGHV3-66': '107131032', 'IGHV4-39': '106877618', 'IGHV1-45': '106962930', 'IGHV4-34': '106829593', 'IGHV1-69': '107169930', 'IGHV3-74': '107218675', 'IGHV1-46': '106967048', 'IGHV4-31': '106805208', 'IGHV1-24': '106733143', 'IGHV1-18': '106641562', 'IGHV2-70': '107178819', 'IGHV3-20': '106667580', 'IGHV3-21': '106691672', 'IGHV3-48': '106993813', 'IGHV3-23': '106725200', 'IGHV3-64': '107113740', 'IGHV3-43': '106926187', 'IGHV3-49': '107012937', 'IGHV4-61': '107095125', 'IGHV3-53': '107048671', 'IGHV4-59': '107082711', 'IGHV1-58': '107078372', 'IGHV4-28': '106780512', 'IGHV7-81': '107282791'}
+#chr14_dict = {'IGHV6-1': '106405610', 'IGHV4-4': '106478109', 'IGHV3-15': '106610312', 'IGHV3-16': '106621893', 'IGHV3-11': '106573232', 'IGHV5-51': '107034728', 'IGHV3-13': '106586136', 'IGHV3-35': '106845322', 'IGHV3-33': '106815721', 'IGHV3-30': '106791004', 'IGHV3-73': '107210931', 'IGHV3-72': '107198931', 'IGHV2-26': '106757649', 'IGHV3-38': '106866405', 'IGHV2-5': '106494134', 'IGHV3-7': '106518399', 'IGHV1-8': '106539078', 'IGHV3-9': '106552284', 'IGHV1-3': '106471245', 'IGHV1-2': '106452670', 'IGHV3-66': '107131032', 'IGHV4-39': '106877618', 'IGHV1-45': '106962930', 'IGHV4-34': '106829593', 'IGHV1-69': '107169930', 'IGHV3-74': '107218675', 'IGHV1-46': '106967048', 'IGHV4-31': '106805208', 'IGHV1-24': '106733143', 'IGHV1-18': '106641562', 'IGHV2-70': '107178819', 'IGHV3-20': '106667580', 'IGHV3-21': '106691672', 'IGHV3-48': '106993813', 'IGHV3-23': '106725200', 'IGHV3-64': '107113740', 'IGHV3-43': '106926187', 'IGHV3-49': '107012937', 'IGHV4-61': '107095125', 'IGHV3-53': '107048671', 'IGHV4-59': '107082711', 'IGHV1-58': '107078372', 'IGHV4-28': '106780512', 'IGHV7-81': '107282791'}
 
-# hg38 one
-# chr14_dict = {'IGHV6-1': '105939755', 'IGHV4-4': '106011921', 'IGHV3-15': '106153623', 'IGHV1-18': '106184900', 'IGHV3-11': '106116634', 'IGHV5-51': '106578743', 'IGHV3-13': '106129539', 'IGHV3-35': '106389391', 'IGHV3-33': '106359792', 'IGHV3-30': '106335081', 'IGHV3-73': '106802693', 'IGHV3-72': '106790690', 'IGHV2-26': '106301395', 'IGHV3-38': '106410492', 'IGHV2-5': '106037901', 'IGHV3-7': '106062150', 'IGHV1-3': '106005094', 'IGHV1-2': '105986581', 'IGHV3-66': '106675016', 'IGHV4-39': '106421710', 'IGHV1-45': '106506995', 'IGHV4-34': '106373662', 'IGHV1-69': '106714683', 'IGHV3-74': '106810441', 'IGHV1-46': '106511116', 'IGHV4-31': '106349282', 'IGHV1-24': '106276547', 'IGHV3-16': '106165204', 'IGHV2-70': '106770576', 'IGHV3-20': '106210935', 'IGHV3-21': '106235063', 'IGHV3-48': '106537809', 'IGHV3-23': '106268605', 'IGHV3-64': '106643131', 'IGHV3-43': '106470263', 'IGHV3-49': '106556919', 'IGHV1-69-2': '106762091', 'IGHV4-61': '106639118', 'IGHV3-53': '106592675', 'IGHV4-59': '106627248', 'IGHV1-58': '106622356', 'IGHV4-28': '106324253'}
+# change default to hg38 one
+chr14_dict = {'IGHV6-1': '105939755', 'IGHV4-4': '106011921', 'IGHV3-15': '106153623', 'IGHV1-18': '106184900', 'IGHV3-11': '106116634', 'IGHV5-51': '106578743', 'IGHV3-13': '106129539', 'IGHV3-35': '106389391', 'IGHV3-33': '106359792', 'IGHV3-30': '106335081', 'IGHV3-73': '106802693', 'IGHV3-72': '106790690', 'IGHV2-26': '106301395', 'IGHV3-38': '106410492', 'IGHV2-5': '106037901', 'IGHV3-7': '106062150', 'IGHV1-3': '106005094', 'IGHV1-2': '105986581', 'IGHV3-66': '106675016', 'IGHV4-39': '106421710', 'IGHV1-45': '106506995', 'IGHV4-34': '106373662', 'IGHV1-69': '106714683', 'IGHV3-74': '106810441', 'IGHV1-46': '106511116', 'IGHV4-31': '106349282', 'IGHV1-24': '106276547', 'IGHV3-16': '106165204', 'IGHV2-70': '106770576', 'IGHV3-20': '106210935', 'IGHV3-21': '106235063', 'IGHV3-48': '106537809', 'IGHV3-23': '106268605', 'IGHV3-64': '106643131', 'IGHV3-43': '106470263', 'IGHV3-49': '106556919', 'IGHV1-69-2': '106762091', 'IGHV4-61': '106639118', 'IGHV3-53': '106592675', 'IGHV4-59': '106627248', 'IGHV1-58': '106622356', 'IGHV4-28': '106324253'}
 
 old_segment_file_name = sys.argv[1]
 new_segment_file_name = sys.argv[2]
 individuals_base_name = sys.argv[3]
-name_of_project = sys.argv[4]
+path_to_output = sys.argv[4]
 allele_name = sys.argv[5]
 offset = sys.argv[6]
 threshold = sys.argv[7]
 epsilon = sys.argv[8]
 
 #get the txt file with data filtered for the first mate from the bam file
-mate_bam_info_file_name_end1 = "output/" + sys.argv[4]+"/mates_filtered_bam_info/"+individuals_base_name+"_1.txt"
+mate_bam_info_file_name_end1 = path_to_output+"/mates_filtered_bam_info/"+individuals_base_name+"_1.txt"
 #get the txt file with data filtered for the first mate from the bam file
-mate_bam_info_file_name_end2 = "output/" + sys.argv[4]+"/mates_filtered_bam_info/"+individuals_base_name+"_2.txt"
+mate_bam_info_file_name_end2 = path_to_output+"/mates_filtered_bam_info/"+individuals_base_name+"_2.txt"
 
 segment_name = allele_name.split("*")[0]		#gets the name of the segment (e.g. in 1-2*01, the segment is 1-2 and *01 indicates the allele number)
 gene_it_mapped_to = 'IGHV'+segment_name	
