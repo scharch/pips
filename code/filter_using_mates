@@ -1,23 +1,23 @@
 #!/bin/bash
 #calls the python script filter_using_mates.py for each allele file
 
-NAME_OF_PROJECT=$1 	#name of folder for the project 
+PATH_TO_OUTPUT=$1 	#name of folder for the project 
 INDIVIDUALS_BASE_NAME=$2
 OFFSET=$3
 THRESHOLD=$4
 EPSILON=$5
 
-#remove the directory filtered_clustered_alleles 
-if [ -d "output/$NAME_OF_PROJECT/filtered_clustered_alleles/$INDIVIDUALS_BASE_NAME" ]; then
-    rm -r "output/$NAME_OF_PROJECT/filtered_clustered_alleles/$INDIVIDUALS_BASE_NAME"
+#remove the directory filtered_alleles 
+if [ -d "$PATH_TO_OUTPUT/filtered_alleles/$INDIVIDUALS_BASE_NAME" ]; then
+    rm -r "$PATH_TO_OUTPUT/filtered_alleles/$INDIVIDUALS_BASE_NAME"
 fi
 
-mkdir -p output/$NAME_OF_PROJECT/filtered_clustered_alleles/$INDIVIDUALS_BASE_NAME
+mkdir -p $PATH_TO_OUTPUT/filtered_alleles/$INDIVIDUALS_BASE_NAME
 
 #for each fasta file corresponding to an allele, this for loop calls filter_using_mates.py on each
-for PATH_TO_OLD_SEGMENT_FILE in "output/$NAME_OF_PROJECT/clustered_alleles/$INDIVIDUALS_BASE_NAME/"*;
+for PATH_TO_OLD_SEGMENT_FILE in "$PATH_TO_OUTPUT/alleles/$INDIVIDUALS_BASE_NAME/"*;
 do
 	ALLELE_NAME="${PATH_TO_OLD_SEGMENT_FILE##*/}"
 	ALLELE_NAME="${ALLELE_NAME%%.*}"
-	python code/filter_using_mates.py "$PATH_TO_OLD_SEGMENT_FILE" "output/$NAME_OF_PROJECT/filtered_clustered_alleles/$INDIVIDUALS_BASE_NAME/$ALLELE_NAME.fastq" "$INDIVIDUALS_BASE_NAME" "$NAME_OF_PROJECT" "$ALLELE_NAME" "$OFFSET" "$THRESHOLD" "$EPSILON" 
+	python code/filter_using_mates.py "$PATH_TO_OLD_SEGMENT_FILE" "$PATH_TO_OUTPUT/filtered_alleles/$INDIVIDUALS_BASE_NAME/$ALLELE_NAME.fastq" "$INDIVIDUALS_BASE_NAME" "$PATH_TO_OUTPUT" "$ALLELE_NAME" "$OFFSET" "$THRESHOLD" "$EPSILON" 
 done
