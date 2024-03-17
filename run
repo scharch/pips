@@ -88,5 +88,5 @@ for FILE in `ls $PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_BASE_NAME/*`; do
 done
 ./code/correct_reads $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $LOCUS
 echo "Assembling Contigs"
-./code/assemble_contigs_abyss $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $COV_MINIMUM
+./code/assemble_contigs_abyss $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME
 
