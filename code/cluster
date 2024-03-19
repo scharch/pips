@@ -8,9 +8,6 @@ PATH_TO_OUTPUT=$1
 PATH_TO_CLUSTER_LIST=$2
 
 PREFIX_IN="$PATH_TO_OUTPUT/alleles/$INDIVIDUALS_NAME/"		#prefix of the path to the input file
-if [[ -d "$PATH_TO_OUTPUT/filtered_alleles/$INDIVIDUALS_NAME" ]]; then
-    PREFIX_IN="$PATH_TO_OUTPUT/filtered_alleles/$INDIVIDUALS_NAME/"
-fi
 PREFIX_OUT="$PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_NAME/"		#prefix of the path to the output file
 
 #remove the directory clustered_alleles if it already exists

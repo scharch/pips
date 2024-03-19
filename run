@@ -67,19 +67,20 @@ do
 	./code/generate_segment_files $PATH_TO_OUTPUT $PATH_TO_INDIVIDUAL_FASTQ $PATH_TO_BOWTIE_DATABASE_INDEX $BOWTIE_PARAM		#generates read mapping data and organizes it by fasta files for each allele
 done
 
-if [[ $PAIRED == 'y' && $FILE_TYPE == "bam" ]]; then #do some extra filtering
-	./code/combine_mates $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME		#combine allele files for mate pairs
-	if [[ $FILE_TYPE == "bam" ]]; then
-		# CAS: I am skeptical of this, as it seems to partly undermine the point of the clustering
-		#	but will leave in place for now
-		echo "filtering by paired reads"
-		./code/generate_mate_bam_info $PATH_TO_OUTPUT $PATH_TO_DATA $INDIVIDUALS_BASE_NAME #filter data out from the bam file respectively for first-in-pair and second-in-pair
-		./code/filter_using_mates $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $OFFSET $THRESHOLD $EPSILON
-	fi
+if [[ $PAIRED == 'y' ]]; then #recombine allele mappings from R1 and R2
+	./code/combine_mates $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME
 fi
 
 echo "clustering"
 ./code/cluster $PATH_TO_OUTPUT $PATH_TO_CLUSTER_LIST $INDIVIDUALS_BASE_NAME
+
+if [[ $PAIRED == 'y' && $FILE_TYPE == "bam" ]]; then #do some extra filtering
+	# CAS: I am skeptical of this, as it seems to partly undermine the point of the clustering
+	#	but will leave in place for now
+	echo "filtering by paired reads"
+	./code/generate_mate_bam_info $PATH_TO_OUTPUT $PATH_TO_DATA $INDIVIDUALS_BASE_NAME #filter data out from the bam file respectively for first-in-pair and second-in-pair
+	./code/filter_using_mates $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME $OFFSET $THRESHOLD $EPSILON
+fi
 
 echo "Assembling Contigs"
 ./code/assemble_contigs_abyss $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME
