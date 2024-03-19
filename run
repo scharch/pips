@@ -81,11 +81,6 @@ fi
 echo "clustering"
 ./code/cluster $PATH_TO_OUTPUT $PATH_TO_CLUSTER_LIST $INDIVIDUALS_BASE_NAME
 
-echo "Error correcting reads"
-mkdir -p "$PATH_TO_OUTPUT/error_corrected/$INDIVIDUALS_BASE_NAME/tmp/"
-for FILE in `ls $PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_BASE_NAME/*`; do
-	support_files/karect/karect -correct -threads=8 -matchtype=hamming -celltype=diploid -inputfile=$FILE -resultdir=$PATH_TO_OUTPUT/error_corrected/$INDIVIDUALS_BASE_NAME -tempdir=$PATH_TO_OUTPUT/error_corrected/$INDIVIDUALS_BASE_NAME/tmp/
-done
 echo "Assembling Contigs"
 ./code/assemble_contigs_abyss $PATH_TO_OUTPUT $INDIVIDUALS_BASE_NAME
 
