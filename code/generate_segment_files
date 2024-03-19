@@ -2,6 +2,7 @@
 #This script maps reads to the database. Also, reverses and complements reads that are reverse complements and saves in a temp file.
 
 #HPC-specific:
+module purge; module load uge
 module load Bowtie2/2.3.4.1
 module load samtools
 module load Biopython/1.65-goolf-1.7.20-Python-2.7.9
@@ -28,7 +29,7 @@ mkdir -p "$PATH_TO_OUTPUT/bam_files"
 mkdir -p $PATH_TO_OUTPUT/alleles/$INDIVIDUALS_NAME
 
 #uses bowtie2 to map the reads to the database
-bowtie2 -x $PATH_TO_DATABASE ${PATH_TO_GENOME_FILE} -S $PATH_TO_BAM_FILE --local --score-min G,20,$BOWTIE_PARAM
+bowtie2 -x $PATH_TO_DATABASE ${PATH_TO_GENOME_FILE} -S $PATH_TO_BAM_FILE --phred64-quals --local --score-min G,20,$BOWTIE_PARAM
 
 #creates a temporary file to identify reads that are reverse complements
 awk -F'[>*]' 'NF == 3{print $2}' $PATH_TO_DATABASE.fa | 

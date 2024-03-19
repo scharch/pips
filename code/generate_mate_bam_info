@@ -1,6 +1,8 @@
 #!/bin/bash
 #filters out the 1st, 2st, 3rd, 8th, and 10th column of the bam files for each read, separating those that are first-in-pair and those that are second-in-pair
 
+module load samtools
+
 PATH_TO_OUTPUT=$1
 PATH_TO_BAM_FILE=$2
 INDIVIDUALS_NAME=$3

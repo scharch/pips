@@ -31,7 +31,7 @@ do
 done
 
 #for PATH_TO_SEGMENT_FILE in `ls "output/$PATH_TO_OUTPUT/error_corrected/$INDIVIDUALS_BASE_NAME"`; #if using error correction
-for PATH_TO_SEGMENT_FILE in `ls "output/$PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_BASE_NAME"`; #otherwise
+for PATH_TO_SEGMENT_FILE in `ls "$PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_BASE_NAME"`; #otherwise
 do
   CWD=`pwd`
   #SEGMENT=`python -c "import sys; print('$PATH_TO_SEGMENT_FILE'.split('_')[1].split('.')[0])"`
