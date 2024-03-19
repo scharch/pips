@@ -15,7 +15,7 @@ fi
 mkdir -p $PATH_TO_OUTPUT/filtered_alleles/$INDIVIDUALS_BASE_NAME
 
 #for each fasta file corresponding to an allele, this for loop calls filter_using_mates.py on each
-for PATH_TO_OLD_SEGMENT_FILE in "$PATH_TO_OUTPUT/alleles/$INDIVIDUALS_BASE_NAME/"*;
+for PATH_TO_OLD_SEGMENT_FILE in $(ls $PATH_TO_OUTPUT/clustered_alleles/$INDIVIDUALS_BASE_NAME/*);
 do
 	ALLELE_NAME="${PATH_TO_OLD_SEGMENT_FILE##*/}"
 	ALLELE_NAME="${ALLELE_NAME%%.*}"
